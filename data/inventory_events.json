@@ -1,0 +1,29 @@
+[
+    {
+        "event": "inventory.failed",
+        "data": {
+            "order_id": "75624dfd-78c1-4782-9a67-4002be4022f3",
+            "reason": "Out of stock",
+            "status": "FAILED"
+        },
+        "timestamp": "2026-04-19T19:12:12.452078"
+    },
+    {
+        "event": "inventory.failed",
+        "data": {
+            "order_id": "7c9dfa15-ab75-4ca4-8ce2-3dc1a1c58d1a",
+            "reason": "Out of stock",
+            "status": "FAILED"
+        },
+        "timestamp": "2026-04-19T19:13:29.651757"
+    },
+    {
+        "event": "inventory.failed",
+        "data": {
+            "order_id": "db60bd85-82f5-4c85-a471-cc8c446164dc",
+            "reason": "Out of stock",
+            "status": "FAILED"
+        },
+        "timestamp": "2026-04-19T19:14:47.216096"
+    }
+]
