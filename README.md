@@ -1,19 +1,61 @@
+
 # E-commerce Microservices Application
 
-This project demonstrates an event-driven e-commerce backend using microservices and RabbitMQ for inter-service communication via the Publish–Subscribe (Pub/Sub) pattern.
+This project is an event-driven e-commerce backend built with Python microservices and RabbitMQ, using the Publish–Subscribe (Pub/Sub) pattern for inter-service communication. It demonstrates a robust, decoupled architecture for order processing, inventory management, payment, shipping, and notifications.
+
 
 ## Architecture Overview
-- **Order Service**: Handles order creation and publishes `order.created` events. Updates order status based on events.
-- **Inventory Service**: Listens for `order.created` events, checks and reserves inventory, emits `inventory.reserved` or `inventory.failed`.
-- **Payment Service**: Listens for `inventory.reserved` events and processes payments, emits `payment.success` or `payment.failed`.
-- **Notification Service**: Listens for all major events (`order.created`, `inventory.reserved`, `inventory.failed`, `payment.success`, `payment.failed`, `order.shipped`) and sends notifications.
-- **Shipping Service**: Listens for both `payment.success` and `inventory.reserved` events, creates shipment when both are present, emits `order.shipped`.
-- **RabbitMQ**: Message broker for event distribution using topic exchange and pub/sub patterns.
+
+- **Order Service**: Handles order creation via API, saves orders, and publishes `order.created` events. Listens for downstream events to update order status.
+- **Inventory Service**: Listens for `order.created`, checks/reserves stock, emits `inventory.reserved` or `inventory.failed`.
+- **Payment Service**: Listens for `inventory.reserved`, processes payment, emits `payment.success` or `payment.failed`.
+- **Shipping Service**: Listens for both `payment.success` and `inventory.reserved`, creates shipment, emits `order.shipped`.
+- **Notification Service**: Listens for all major events and sends/logs notifications.
+- **DLQ (Dead Letter Queue)**: Captures failed payment/inventory events for inspection.
+- **RabbitMQ**: Message broker for event distribution using a fanout exchange (pub/sub).
+
+### Event Flow
+1. **Order Service** receives API request, creates order, publishes `order.created`.
+2. **Inventory Service** reserves stock, emits `inventory.reserved` or `inventory.failed`.
+3. **Payment Service** processes payment after inventory is reserved, emits `payment.success` or `payment.failed`.
+4. **Shipping Service** creates shipment when both payment and inventory are successful, emits `order.shipped`.
+5. **Notification Service** logs/sends notifications for all major events.
+6. **Order Service** updates order status based on events.
+7. **DLQ** stores failed events for debugging.
+
+---
+
+## Architecture Flowchart
+
+```mermaid
+graph TD
+   A[Order Service] -- order.created --> B[Inventory Service]
+   A -- order.created --> C[Payment Service]
+   A -- order.created --> D[Notification Service]
+   B -- inventory.reserved / inventory.failed --> C
+   B -- inventory.reserved / inventory.failed --> D
+   C -- payment.success / payment.failed --> E[Shipping Service]
+   C -- payment.success / payment.failed --> D
+   E -- order.shipped --> D
+   E -- order.shipped --> A
+   B -- inventory.failed --> F[DLQ]
+   C -- payment.failed --> F
+   D -- notification.sent --> G[User]
+   subgraph Message Broker (RabbitMQ)
+      A
+      B
+      C
+      D
+      E
+   end
+```
+
 
 ## Prerequisites
 - Python 3.8+
 - [Docker](https://www.docker.com/get-started) & Docker Compose
 - (Optional) Local virtual environment: `python -m venv .venv`
+
 
 ## Setup & Installation
 
@@ -36,6 +78,7 @@ This project demonstrates an event-driven e-commerce backend using microservices
    ```
    This will start RabbitMQ and all microservices, each running its consumer script.
 
+
 ## Running Services Manually (Alternative)
 1. Start RabbitMQ (via Docker or locally).
 2. In separate terminals, run each consumer from the project root (set PYTHONPATH):
@@ -47,23 +90,16 @@ This project demonstrates an event-driven e-commerce backend using microservices
    python3 services/order_service/app/consume_events.py &
    python3 services/notification_service/app/consume_order_created.py &
    python3 common/messaging/consume_dlq.py &
-   ## Event Flow Summary
-
-   1. **Order Service** receives API request, creates order, publishes `order.created`.
-   2. **Inventory Service** listens to `order.created`, checks/reserves stock, emits `inventory.reserved` or `inventory.failed`.
-   3. **Payment Service** listens to `inventory.reserved`, processes payment, emits `payment.success` or `payment.failed`.
-   4. **Shipping Service** listens to both `payment.success` and `inventory.reserved`, creates shipment, emits `order.shipped`.
-   5. **Notification Service** listens to all major events and notifies users.
-   6. **Order Service** updates order status based on events.
    ```
    This ensures all event consumers and DLQ handler are running.
-2. In separate terminals, run each consumer **from the project root** using Python's module syntax:
+3. Alternatively, run each consumer using Python's module syntax:
    ```bash
    python -m services.payment_service.app.consume_order_created
    python -m services.inventory_service.app.consume_order_created
    python -m services.notification_service.app.consume_order_created
    ```
    This ensures all imports work correctly.
+
 
 ## How to Ingest Data & Trigger Events
 
@@ -108,6 +144,7 @@ If payment or inventory fails, the failed event is published to the DLQ and stor
 
 **Happy hacking!**
 
+
 ## Testing the Event Flow
 1. **Start all services and RabbitMQ** (see above).
 2. **Trigger an order creation** (see code above or use an API endpoint if available).
@@ -117,19 +154,23 @@ If payment or inventory fails, the failed event is published to the DLQ and stor
    - Notification service should send/log a notification
 
 ## Data Files
-- Orders and events are stored in `data/orders.json` and `data/order_events.json`.
+- Orders and events are stored in `data/orders.json`, `data/order_events.json`, and other JSON files in `data/`.
+
 
 ## Project Structure
-- `services/` — Contains all microservices
-- `common/` — Shared messaging and schema code
+- `services/` — All microservices (order, inventory, payment, shipping, notification)
+- `common/` — Shared messaging, event schemas, and utilities
+- `data/` — JSON files for events, orders, stock, DLQ, etc.
 - `docker-compose.yml` — Multi-service orchestration
-- `scripts/` — Helper scripts (start, migrate)
+- `scripts/` — Helper scripts (start, migrate, trigger order)
 - `docs/` — Pub/Sub documentation and code samples
+
 
 ## Useful Commands
 - Build and start all services: `docker-compose up --build`
 - Stop all services: `docker-compose down`
 - Run a specific consumer: `python services/<service>/app/consume_order_created.py`
+
 
 ## References
 - See `docs/pubsub_step1.md`, `docs/pubsub_step1_code.md`, `docs/pubsub_step2_code.md`, and `docs/pubsub_step3_test.md` for detailed event flow and code samples.
