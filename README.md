@@ -26,8 +26,7 @@ This project is an event-driven e-commerce backend built with Python microservic
 ---
 
 ## Architecture Flowchart
-
-```mermaid
+```
 graph TD
    A[Order Service] -- order.created --> B[Inventory Service]
    A -- order.created --> C[Payment Service]
