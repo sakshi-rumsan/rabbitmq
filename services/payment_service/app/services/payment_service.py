@@ -45,3 +45,8 @@ class PaymentService:
         except FileNotFoundError:
             with open(PaymentService.EVENTS_DB_PATH, "w") as file:
                 json.dump([event], file, indent=4)
+        # If event is failed, also publish to DLQ
+        if event_name in ["payment.failed", "inventory.failed"]:
+            from common.messaging.dlq import publish_to_dlq
+            import json as _json
+            publish_to_dlq(_json.dumps(event_data))

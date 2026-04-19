@@ -13,10 +13,18 @@ QUEUE_NAME = "notification.queue"
 def callback(ch, method, properties, body):
     event = json.loads(body)
     print("[Notification] Received event:", event)
-    if event.get("event") == "order.created":
+    event_type = event.get("event")
+    if event_type in [
+        "order.created",
+        "payment.success",
+        "payment.failed",
+        "inventory.reserved",
+        "inventory.failed",
+        "order.shipped"
+    ]:
         NotificationService.send_notification({
-            "order_id": event["data"]["order_id"],
-            "event": event["event"]
+            "order_id": event["data"].get("order_id"),
+            "event": event_type
         })
 
 def main():

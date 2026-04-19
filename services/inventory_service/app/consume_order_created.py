@@ -7,6 +7,7 @@ from common.messaging.queues import declare_queue
 from common.messaging.exchanges import declare_exchange
 from services.inventory_service.app.services.inventory_service import InventoryService
 
+
 EXCHANGE_NAME = "order.events"
 QUEUE_NAME = "inventory.queue"
 
@@ -17,6 +18,8 @@ def callback(ch, method, properties, body):
         order = event["data"]
         inventory_data = {
             "order_id": order["order_id"],
+            "user_id": order.get("user_id"),
+            "total_amount": order.get("total_amount"),
             "reserved_items": [
                 {"product_id": item["item_name"], "quantity": item["quantity"]}
                 for item in order["items"]

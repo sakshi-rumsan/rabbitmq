@@ -3,12 +3,12 @@
 This project demonstrates an event-driven e-commerce backend using microservices and RabbitMQ for inter-service communication via the Publish–Subscribe (Pub/Sub) pattern.
 
 ## Architecture Overview
-- **Order Service**: Handles order creation and publishes `order.created` events.
-- **Inventory Service**: Listens for order events and reserves inventory.
-- **Payment Service**: Listens for order events and processes payments.
-- **Notification Service**: Listens for order events and sends notifications.
-- **Shipping Service**: (Optional) Handles shipping logic.
-- **RabbitMQ**: Message broker for event distribution.
+- **Order Service**: Handles order creation and publishes `order.created` events. Updates order status based on events.
+- **Inventory Service**: Listens for `order.created` events, checks and reserves inventory, emits `inventory.reserved` or `inventory.failed`.
+- **Payment Service**: Listens for `inventory.reserved` events and processes payments, emits `payment.success` or `payment.failed`.
+- **Notification Service**: Listens for all major events (`order.created`, `inventory.reserved`, `inventory.failed`, `payment.success`, `payment.failed`, `order.shipped`) and sends notifications.
+- **Shipping Service**: Listens for both `payment.success` and `inventory.reserved` events, creates shipment when both are present, emits `order.shipped`.
+- **RabbitMQ**: Message broker for event distribution using topic exchange and pub/sub patterns.
 
 ## Prerequisites
 - Python 3.8+
@@ -38,6 +38,25 @@ This project demonstrates an event-driven e-commerce backend using microservices
 
 ## Running Services Manually (Alternative)
 1. Start RabbitMQ (via Docker or locally).
+2. In separate terminals, run each consumer from the project root (set PYTHONPATH):
+   ```bash
+   export PYTHONPATH=$PYTHONPATH:$(pwd)
+   python3 services/inventory_service/app/consume_order_created.py &
+   python3 services/payment_service/app/consume_order_created.py &
+   python3 services/shipping_service/app/consume_events.py &
+   python3 services/order_service/app/consume_events.py &
+   python3 services/notification_service/app/consume_order_created.py &
+   python3 common/messaging/consume_dlq.py &
+   ## Event Flow Summary
+
+   1. **Order Service** receives API request, creates order, publishes `order.created`.
+   2. **Inventory Service** listens to `order.created`, checks/reserves stock, emits `inventory.reserved` or `inventory.failed`.
+   3. **Payment Service** listens to `inventory.reserved`, processes payment, emits `payment.success` or `payment.failed`.
+   4. **Shipping Service** listens to both `payment.success` and `inventory.reserved`, creates shipment, emits `order.shipped`.
+   5. **Notification Service** listens to all major events and notifies users.
+   6. **Order Service** updates order status based on events.
+   ```
+   This ensures all event consumers and DLQ handler are running.
 2. In separate terminals, run each consumer **from the project root** using Python's module syntax:
    ```bash
    python -m services.payment_service.app.consume_order_created
@@ -47,22 +66,47 @@ This project demonstrates an event-driven e-commerce backend using microservices
    This ensures all imports work correctly.
 
 ## How to Ingest Data & Trigger Events
-- **Create an Order**: Trigger order creation via the Order Service. This can be done by calling the appropriate API endpoint or directly invoking the service logic.
-- Example (Python):
-   ```python
-   from services.order_service.app.api.order_routes import create_order_service
-   order_data = {
-       "user_id": "user123",
-       "items": [{"item_name": "Widget", "quantity": 2}],
-       "total_amount": 49.99
-   }
-   response = create_order_service(order_data)
-   print(response)
-   ```
-- This will:
-  - Save the order to a JSON file
-  - Publish an `order.created` event to RabbitMQ
-  - All listening services (inventory, payment, notification) will receive and process the event
+
+### 1. Trigger an Order (Start the Flow)
+You can trigger an order using the provided script:
+```bash
+export PYTHONPATH=$PYTHONPATH:$(pwd)
+python3 scripts/trigger_order.py
+```
+This will:
+- Read order data from `data/dummy_order.json`
+- Call the Order Service to create the order
+- Save the order to `data/orders.json`
+- Publish an `order.created` event to RabbitMQ
+
+### 2. Payment & Inventory Processing
+The Payment and Inventory services automatically listen for `order.created` events:
+- **Payment Service**: Processes payment and publishes `payment.success` or `payment.failed`.
+- **Inventory Service**: Reserves stock and publishes `inventory.reserved` or `inventory.failed`.
+
+### 3. Shipping Service
+The Shipping Service waits for both `payment.success` and `inventory.reserved` for an order, then creates a shipment and publishes `order.shipped`.
+
+### 4. Order Status Update
+The Order Service listens for all relevant events and updates the order status in `data/orders.json`.
+
+### 5. Notification Service
+The Notification Service listens for all events and logs/sends notifications.
+
+### 6. Dead Letter Queue (DLQ)
+If payment or inventory fails, the failed event is published to the DLQ and stored in `data/dlq_events.json` for inspection.
+
+---
+
+**Summary of Steps:**
+1. Start RabbitMQ and all consumers (see above)
+2. Trigger an order: `python3 scripts/trigger_order.py`
+3. The rest of the flow is automatic via events and consumers
+4. Inspect JSON files in `data/` for results and logs
+
+---
+
+**Happy hacking!**
 
 ## Testing the Event Flow
 1. **Start all services and RabbitMQ** (see above).

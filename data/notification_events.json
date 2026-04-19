@@ -2,51 +2,81 @@
     {
         "event": "notification.sent",
         "data": {
-            "order_id": "b51192bc-cc3d-4d1a-8050-fbc502d263b8",
+            "order_id": "c5856065-da2f-4f3d-bff7-64769cac6012",
             "event": "order.created",
             "message": "Order received",
             "status": "SENT"
         },
-        "timestamp": "2026-04-19T19:09:10.379694"
+        "timestamp": "2026-04-19T21:05:37.056770"
     },
     {
         "event": "notification.sent",
         "data": {
-            "order_id": "bd248dda-ad35-4090-af0e-e9ca5be55d3e",
-            "event": "order.created",
-            "message": "Order received",
+            "order_id": "c5856065-da2f-4f3d-bff7-64769cac6012",
+            "event": "inventory.reserved",
+            "message": "Notification",
             "status": "SENT"
         },
-        "timestamp": "2026-04-19T19:11:00.465953"
+        "timestamp": "2026-04-19T21:05:37.070120"
     },
     {
         "event": "notification.sent",
         "data": {
-            "order_id": "75624dfd-78c1-4782-9a67-4002be4022f3",
+            "order_id": "8895b98e-8c25-4bd3-a602-3adf8e78faf6",
             "event": "order.created",
             "message": "Order received",
             "status": "SENT"
         },
-        "timestamp": "2026-04-19T19:12:12.449307"
+        "timestamp": "2026-04-19T21:05:37.078319"
     },
     {
         "event": "notification.sent",
         "data": {
-            "order_id": "7c9dfa15-ab75-4ca4-8ce2-3dc1a1c58d1a",
-            "event": "order.created",
-            "message": "Order received",
+            "order_id": "8895b98e-8c25-4bd3-a602-3adf8e78faf6",
+            "event": "inventory.reserved",
+            "message": "Notification",
             "status": "SENT"
         },
-        "timestamp": "2026-04-19T19:13:29.649617"
+        "timestamp": "2026-04-19T21:05:37.084268"
     },
     {
         "event": "notification.sent",
         "data": {
-            "order_id": "db60bd85-82f5-4c85-a471-cc8c446164dc",
+            "order_id": "fc03ae0e-721c-458c-aa4a-c28b82428a4b",
             "event": "order.created",
             "message": "Order received",
             "status": "SENT"
         },
-        "timestamp": "2026-04-19T19:14:47.214042"
+        "timestamp": "2026-04-19T21:05:37.091558"
+    },
+    {
+        "event": "notification.sent",
+        "data": {
+            "order_id": "fc03ae0e-721c-458c-aa4a-c28b82428a4b",
+            "event": "inventory.reserved",
+            "message": "Notification",
+            "status": "SENT"
+        },
+        "timestamp": "2026-04-19T21:05:37.098466"
+    },
+    {
+        "event": "notification.sent",
+        "data": {
+            "order_id": "d9cfd934-60fd-416c-8fa5-2b746bcaf52b",
+            "event": "order.created",
+            "message": "Order received",
+            "status": "SENT"
+        },
+        "timestamp": "2026-04-19T21:05:37.104245"
+    },
+    {
+        "event": "notification.sent",
+        "data": {
+            "order_id": "d9cfd934-60fd-416c-8fa5-2b746bcaf52b",
+            "event": "inventory.reserved",
+            "message": "Notification",
+            "status": "SENT"
+        },
+        "timestamp": "2026-04-19T21:05:37.110966"
     }
 ]

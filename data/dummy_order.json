@@ -1,8 +1,32 @@
-{
-  "user_id": "user123",
-  "items": [
-    {"item_name": "Widget", "quantity": 2},
-    {"item_name": "Gadget", "quantity": 1}
-  ],
-  "total_amount": 99.99
-}
+[
+  {
+    "user_id": "user123",
+    "items": [
+      {"item_name": "Widget", "quantity": 2},
+      {"item_name": "Gadget", "quantity": 1}
+    ],
+    "total_amount": 99.99
+  },
+  {
+    "user_id": "user456",
+    "items": [
+      {"item_name": "Widget", "quantity": 1}
+    ],
+    "total_amount": 1200.00
+  },
+  {
+    "user_id": "user789",
+    "items": [
+      {"item_name": "Gadget", "quantity": 2}
+    ],
+    "total_amount": 500.00
+  },
+  {
+    "user_id": "user321",
+    "items": [
+      {"item_name": "Widget", "quantity": 1},
+      {"item_name": "Gadget", "quantity": 1}
+    ],
+    "total_amount": 1500.00
+  }
+]

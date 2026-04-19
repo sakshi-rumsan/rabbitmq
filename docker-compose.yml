@@ -17,6 +17,7 @@ services:
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
+      - PYTHONPATH=/app
     depends_on:
       - rabbitmq
     command: ["python", "services/payment_service/app/consume_order_created.py"]
@@ -27,6 +28,7 @@ services:
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
+      - PYTHONPATH=/app
     depends_on:
       - rabbitmq
     command: ["python", "services/inventory_service/app/consume_order_created.py"]
@@ -37,8 +39,20 @@ services:
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
+      - PYTHONPATH=/app
     depends_on:
       - rabbitmq
     command: ["python", "services/notification_service/app/consume_order_created.py"]
+
+  shipping_service:
+    build: .
+    container_name: shipping_service
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - PYTHONPATH=/app
+    depends_on:
+      - rabbitmq
+    command: ["python", "services/shipping_service/app/consume_events.py"]
 
 # To add order_service or API gateway, add similar service blocks.

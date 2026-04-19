@@ -1,29 +1,70 @@
 [
     {
-        "event": "inventory.failed",
+        "event": "inventory.reserved",
         "data": {
-            "order_id": "75624dfd-78c1-4782-9a67-4002be4022f3",
-            "reason": "Out of stock",
-            "status": "FAILED"
+            "order_id": "c5856065-da2f-4f3d-bff7-64769cac6012",
+            "user_id": "user123",
+            "total_amount": 99.99,
+            "reserved_items": [
+                {
+                    "product_id": "Widget",
+                    "quantity": 2
+                },
+                {
+                    "product_id": "Gadget",
+                    "quantity": 1
+                }
+            ]
         },
-        "timestamp": "2026-04-19T19:12:12.452078"
+        "timestamp": "2026-04-19T21:05:37.057977"
     },
     {
-        "event": "inventory.failed",
+        "event": "inventory.reserved",
         "data": {
-            "order_id": "7c9dfa15-ab75-4ca4-8ce2-3dc1a1c58d1a",
-            "reason": "Out of stock",
-            "status": "FAILED"
+            "order_id": "8895b98e-8c25-4bd3-a602-3adf8e78faf6",
+            "user_id": "user456",
+            "total_amount": 1200.0,
+            "reserved_items": [
+                {
+                    "product_id": "Widget",
+                    "quantity": 1
+                }
+            ]
         },
-        "timestamp": "2026-04-19T19:13:29.651757"
+        "timestamp": "2026-04-19T21:05:37.078339"
     },
     {
-        "event": "inventory.failed",
+        "event": "inventory.reserved",
         "data": {
-            "order_id": "db60bd85-82f5-4c85-a471-cc8c446164dc",
-            "reason": "Out of stock",
-            "status": "FAILED"
+            "order_id": "fc03ae0e-721c-458c-aa4a-c28b82428a4b",
+            "user_id": "user789",
+            "total_amount": 500.0,
+            "reserved_items": [
+                {
+                    "product_id": "Gadget",
+                    "quantity": 2
+                }
+            ]
         },
-        "timestamp": "2026-04-19T19:14:47.216096"
+        "timestamp": "2026-04-19T21:05:37.091931"
+    },
+    {
+        "event": "inventory.reserved",
+        "data": {
+            "order_id": "d9cfd934-60fd-416c-8fa5-2b746bcaf52b",
+            "user_id": "user321",
+            "total_amount": 1500.0,
+            "reserved_items": [
+                {
+                    "product_id": "Widget",
+                    "quantity": 1
+                },
+                {
+                    "product_id": "Gadget",
+                    "quantity": 1
+                }
+            ]
+        },
+        "timestamp": "2026-04-19T21:05:37.104298"
     }
 ]

@@ -1,0 +1,18 @@
+{
+    "c5856065-da2f-4f3d-bff7-64769cac6012": {
+        "payment": false,
+        "inventory": true
+    },
+    "8895b98e-8c25-4bd3-a602-3adf8e78faf6": {
+        "payment": false,
+        "inventory": true
+    },
+    "fc03ae0e-721c-458c-aa4a-c28b82428a4b": {
+        "payment": false,
+        "inventory": true
+    },
+    "d9cfd934-60fd-416c-8fa5-2b746bcaf52b": {
+        "payment": false,
+        "inventory": true
+    }
+}

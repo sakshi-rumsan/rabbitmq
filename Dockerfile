@@ -10,4 +10,7 @@ COPY . .
 
 ENV PYTHONUNBUFFERED=1
 
+# Ensure PYTHONPATH includes /app for module resolution
+ENV PYTHONPATH=/app
+
 CMD ["tail", "-f", "/dev/null"]
