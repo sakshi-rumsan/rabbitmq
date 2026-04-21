@@ -5,6 +5,7 @@ import json
 from common.messaging.connection import get_connection
 from common.messaging.queues import declare_queue
 from common.messaging.exchanges import declare_exchange
+from common.utils.json_store import append_to_json_file
 
 EXCHANGE_NAME = "dlq.events"
 QUEUE_NAME = "dlq.queue"
@@ -16,15 +17,7 @@ def callback(ch, method, properties, body):
     except Exception:
         event = {"raw": body.decode("utf-8", errors="replace")}
     print("[DLQ] Received dead letter event:", event)
-    try:
-        with open(DLQ_JSON_PATH, "r+") as file:
-            events = json.load(file)
-            events.append(event)
-            file.seek(0)
-            json.dump(events, file, indent=4)
-    except FileNotFoundError:
-        with open(DLQ_JSON_PATH, "w") as file:
-            json.dump([event], file, indent=4)
+    append_to_json_file(DLQ_JSON_PATH, event)
 
 def main():
     connection = get_connection()

@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Dict, List
 
 from common.messaging.connection import get_connection
+from common.utils.json_store import append_to_json_file
 
 class InventoryService:
     EVENTS_DB_PATH = "data/inventory_events.json"
@@ -73,13 +74,4 @@ class InventoryService:
             connection.close()
         except Exception as e:
             print(f"[InventoryService] Failed to publish event: {e}")
-        # Also write to JSON file for debugging
-        try:
-            with open(InventoryService.EVENTS_DB_PATH, "r+") as file:
-                events = json.load(file)
-                events.append(event)
-                file.seek(0)
-                json.dump(events, file, indent=4)
-        except FileNotFoundError:
-            with open(InventoryService.EVENTS_DB_PATH, "w") as file:
-                json.dump([event], file, indent=4)
+        append_to_json_file(InventoryService.EVENTS_DB_PATH, event)

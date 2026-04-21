@@ -7,6 +7,7 @@ from common.messaging.queues import declare_queue
 from common.messaging.exchanges import declare_exchange
 from common.messaging.constants import PIPELINE_EXCHANGE, EXCHANGE_TYPE, Q_ORDER_UPDATE
 from services.order_service.app.services.order_service import OrderService
+from common.utils.json_store import append_to_json_file
 
 order_event_state = {}
 
@@ -45,8 +46,10 @@ def callback(ch, method, properties, body):
         new_status = "RESERVED"
 
     if new_status:
-        try:
-            with open(OrderService.JSON_DB_PATH, "r+") as file:
+        from pathlib import Path
+        path = Path(OrderService.JSON_DB_PATH)
+        if path.exists():
+            with open(path, "r+") as file:
                 orders = json.load(file)
                 for order in orders:
                     if order["order_id"] == order_id:
@@ -54,8 +57,7 @@ def callback(ch, method, properties, body):
                         break
                 file.seek(0)
                 json.dump(orders, file, indent=4)
-        except FileNotFoundError:
-            pass
+                file.truncate()
 
 def main():
     connection = get_connection()

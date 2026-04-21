@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Dict
 from services.payment_service.app.schemas.payment_schema import PaymentInput, PaymentSuccess, PaymentFailed
 from common.messaging.connection import get_connection
+from common.utils.json_store import append_to_json_file
 import pika
 
 
@@ -40,17 +41,7 @@ class PaymentService:
             "timestamp": datetime.utcnow().isoformat()
         }
 
-        # 1. Write to local log file for debugging
-        try:
-            with open(PaymentService.EVENTS_DB_PATH, "r+") as file:
-                events = json.load(file)
-                events.append(event)
-                file.seek(0)
-                json.dump(events, file, indent=4)
-                file.truncate()
-        except FileNotFoundError:
-            with open(PaymentService.EVENTS_DB_PATH, "w") as file:
-                json.dump([event], file, indent=4)
+        append_to_json_file(PaymentService.EVENTS_DB_PATH, event)
 
         # 2. Publish to RabbitMQ so downstream services receive it
         try:

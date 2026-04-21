@@ -1,6 +1,6 @@
-import json
 from datetime import datetime
 from services.notification_service.app.schemas.notification_schema import NotificationInput, NotificationSent
+from common.utils.json_store import append_to_json_file
 
 class NotificationService:
     NOTIFY_DB_PATH = "data/notification_events.json"
@@ -31,12 +31,4 @@ class NotificationService:
             "data": event_data,
             "timestamp": datetime.utcnow().isoformat()
         }
-        try:
-            with open(NotificationService.NOTIFY_DB_PATH, "r+") as file:
-                events = json.load(file)
-                events.append(event)
-                file.seek(0)
-                json.dump(events, file, indent=4)
-        except FileNotFoundError:
-            with open(NotificationService.NOTIFY_DB_PATH, "w") as file:
-                json.dump([event], file, indent=4)
+        append_to_json_file(NotificationService.NOTIFY_DB_PATH, event)

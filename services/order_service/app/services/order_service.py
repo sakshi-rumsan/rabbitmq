@@ -1,7 +1,7 @@
-import json
 import uuid
 from datetime import datetime
 from typing import List, Dict
+from common.utils.json_store import append_to_json_file
 
 class OrderService:
     JSON_DB_PATH = "data/orders.json"
@@ -19,16 +19,7 @@ class OrderService:
             "order_status": "PENDING",
             "timestamp": timestamp
         }
-        # Save order to JSON DB
-        try:
-            with open(OrderService.JSON_DB_PATH, "r+") as file:
-                data = json.load(file)
-                data.append(order)
-                file.seek(0)
-                json.dump(data, file, indent=4)
-        except FileNotFoundError:
-            with open(OrderService.JSON_DB_PATH, "w") as file:
-                json.dump([order], file, indent=4)
+        append_to_json_file(OrderService.JSON_DB_PATH, order)
         # Publish event
         OrderService.publish_event("order.created", order)
         return order
