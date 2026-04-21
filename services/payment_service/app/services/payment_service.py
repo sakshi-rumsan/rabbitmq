@@ -3,14 +3,17 @@ import uuid
 from datetime import datetime
 from typing import Dict
 from services.payment_service.app.schemas.payment_schema import PaymentInput, PaymentSuccess, PaymentFailed
+from common.messaging.connection import get_connection
+import pika
+
 
 class PaymentService:
     EVENTS_DB_PATH = "data/payment_events.json"
+    EXCHANGE_NAME = "order.events"
 
     @staticmethod
     def process_payment(payment_data: Dict) -> Dict:
         payment = PaymentInput(**payment_data)
-        # Simulate payment logic (success if amount <= 1000, else fail)
         if payment.total_amount <= 1000:
             transaction_id = str(uuid.uuid4())
             event = PaymentSuccess(
@@ -36,17 +39,39 @@ class PaymentService:
             "data": event_data,
             "timestamp": datetime.utcnow().isoformat()
         }
+
+        # 1. Write to local log file for debugging
         try:
             with open(PaymentService.EVENTS_DB_PATH, "r+") as file:
                 events = json.load(file)
                 events.append(event)
                 file.seek(0)
                 json.dump(events, file, indent=4)
+                file.truncate()
         except FileNotFoundError:
             with open(PaymentService.EVENTS_DB_PATH, "w") as file:
                 json.dump([event], file, indent=4)
-        # If event is failed, also publish to DLQ
-        if event_name in ["payment.failed", "inventory.failed"]:
+
+        # 2. Publish to RabbitMQ so downstream services receive it
+        try:
+            connection = get_connection()
+            channel = connection.channel()
+            channel.exchange_declare(
+                exchange=PaymentService.EXCHANGE_NAME,
+                exchange_type="fanout",
+                durable=True
+            )
+            channel.basic_publish(
+                exchange=PaymentService.EXCHANGE_NAME,
+                routing_key="",
+                body=json.dumps(event),
+                properties=pika.BasicProperties(delivery_mode=2)
+            )
+            connection.close()
+        except Exception as e:
+            print(f"[PaymentService] Failed to publish event to RabbitMQ: {e}")
+
+        # 3. Route failures to DLQ
+        if event_name == "payment.failed":
             from common.messaging.dlq import publish_to_dlq
-            import json as _json
-            publish_to_dlq(_json.dumps(event_data))
+            publish_to_dlq(json.dumps(event))
