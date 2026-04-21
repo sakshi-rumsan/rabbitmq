@@ -25,10 +25,12 @@ services:
       - RABBITMQ_USER=${RABBITMQ_USER:-guest}
       - RABBITMQ_PASS=${RABBITMQ_PASS:-guest}
       - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
     depends_on:
       rabbitmq:
         condition: service_healthy
-    command: ["python", "services/payment_service/app/consume_inventory_reserved.py"]
+    command: ["python", "-m", "services.payment_service.app.consume_inventory_reserved"]
 
   inventory_service:
     build: .
@@ -39,10 +41,12 @@ services:
       - RABBITMQ_USER=${RABBITMQ_USER:-guest}
       - RABBITMQ_PASS=${RABBITMQ_PASS:-guest}
       - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
     depends_on:
       rabbitmq:
         condition: service_healthy
-    command: ["python", "services/inventory_service/app/consume_order_created.py"]
+    command: ["python", "-m", "services.inventory_service.app.consume_order_created"]
 
   notification_service:
     build: .
@@ -53,10 +57,12 @@ services:
       - RABBITMQ_USER=${RABBITMQ_USER:-guest}
       - RABBITMQ_PASS=${RABBITMQ_PASS:-guest}
       - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
     depends_on:
       rabbitmq:
         condition: service_healthy
-    command: ["python", "services/notification_service/app/consume_events.py"]
+    command: ["python", "-m", "services.notification_service.app.consume_events"]
 
   shipping_service:
     build: .
@@ -67,10 +73,12 @@ services:
       - RABBITMQ_USER=${RABBITMQ_USER:-guest}
       - RABBITMQ_PASS=${RABBITMQ_PASS:-guest}
       - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
     depends_on:
       rabbitmq:
         condition: service_healthy
-    command: ["python", "services/shipping_service/app/consume_events.py"]
+    command: ["python", "-m", "services.shipping_service.app.consume_events"]
 
   order_service:
     build: .
@@ -81,7 +89,25 @@ services:
       - RABBITMQ_USER=${RABBITMQ_USER:-guest}
       - RABBITMQ_PASS=${RABBITMQ_PASS:-guest}
       - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
     depends_on:
       rabbitmq:
         condition: service_healthy
-    command: ["python", "services/order_service/app/consume_events.py"]
+    command: ["python", "-m", "services.order_service.app.consume_events"]
+
+  dlq_consumer:
+    build: .
+    container_name: dlq_consumer
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_PASS=${RABBITMQ_PASS:-guest}
+      - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    command: ["python", "-m", "common.messaging.consume_dlq"]
