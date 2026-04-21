@@ -59,13 +59,16 @@ class InventoryService:
             "timestamp": datetime.utcnow().isoformat()
         }
         try:
+            from common.messaging.constants import PIPELINE_EXCHANGE, EXCHANGE_TYPE
+            import pika
             connection = get_connection()
             channel = connection.channel()
-            channel.exchange_declare(exchange="order.events", exchange_type="fanout", durable=True)
+            channel.exchange_declare(exchange=PIPELINE_EXCHANGE, exchange_type=EXCHANGE_TYPE, durable=True)
             channel.basic_publish(
-                exchange="order.events",
-                routing_key="",
-                body=json.dumps(event)
+                exchange=PIPELINE_EXCHANGE,
+                routing_key=event_name,
+                body=json.dumps(event),
+                properties=pika.BasicProperties(delivery_mode=2)
             )
             connection.close()
         except Exception as e:

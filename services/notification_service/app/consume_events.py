@@ -1,14 +1,12 @@
 """
-Consumer for notification_service: listens to all order events from RabbitMQ and triggers notification sending.
+Consumer for notification_service: listens to all pipeline events from RabbitMQ and triggers notification sending.
 """
 import json
 from common.messaging.connection import get_connection
 from common.messaging.queues import declare_queue
 from common.messaging.exchanges import declare_exchange
+from common.messaging.constants import PIPELINE_EXCHANGE, EXCHANGE_TYPE, Q_NOTIFICATION
 from services.notification_service.app.services.notification_service import NotificationService
-
-EXCHANGE_NAME = "order.events"
-QUEUE_NAME = "notification.queue"
 
 
 def callback(ch, method, properties, body):
@@ -25,10 +23,10 @@ def callback(ch, method, properties, body):
 def main():
     connection = get_connection()
     channel = connection.channel()
-    declare_exchange(EXCHANGE_NAME, exchange_type="fanout")
-    declare_queue(QUEUE_NAME)
-    channel.queue_bind(exchange=EXCHANGE_NAME, queue=QUEUE_NAME)
-    channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback, auto_ack=True)
+    declare_exchange(PIPELINE_EXCHANGE, exchange_type=EXCHANGE_TYPE)
+    declare_queue(Q_NOTIFICATION)
+    channel.queue_bind(exchange=PIPELINE_EXCHANGE, queue=Q_NOTIFICATION, routing_key="#")
+    channel.basic_consume(queue=Q_NOTIFICATION, on_message_callback=callback, auto_ack=True)
     print(f"[Notification] Waiting for order events...")
     channel.start_consuming()
 

@@ -54,16 +54,17 @@ class PaymentService:
 
         # 2. Publish to RabbitMQ so downstream services receive it
         try:
+            from common.messaging.constants import PIPELINE_EXCHANGE, EXCHANGE_TYPE
             connection = get_connection()
             channel = connection.channel()
             channel.exchange_declare(
-                exchange=PaymentService.EXCHANGE_NAME,
-                exchange_type="fanout",
+                exchange=PIPELINE_EXCHANGE,
+                exchange_type=EXCHANGE_TYPE,
                 durable=True
             )
             channel.basic_publish(
-                exchange=PaymentService.EXCHANGE_NAME,
-                routing_key="",
+                exchange=PIPELINE_EXCHANGE,
+                routing_key=event_name,
                 body=json.dumps(event),
                 properties=pika.BasicProperties(delivery_mode=2)
             )

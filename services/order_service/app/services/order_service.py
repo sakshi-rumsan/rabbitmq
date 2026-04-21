@@ -35,20 +35,16 @@ class OrderService:
 
     @staticmethod
     def publish_event(event_name: str, event_data: dict):
-        # Publish event to RabbitMQ exchange (fanout for pub/sub)
         from common.messaging.producer import publish_message
         from common.messaging.exchanges import declare_exchange
+        from common.messaging.constants import PIPELINE_EXCHANGE, EXCHANGE_TYPE
         import json
 
-        exchange_name = "order.events"
-        # Ensure the exchange exists (fanout type for pub/sub)
-        declare_exchange(exchange_name, exchange_type="fanout")
+        declare_exchange(PIPELINE_EXCHANGE, exchange_type=EXCHANGE_TYPE)
 
         event = {
             "event": event_name,
             "data": event_data,
             "timestamp": datetime.utcnow().isoformat()
         }
-        message = json.dumps(event)
-        # In fanout, routing_key is ignored, but must be provided
-        publish_message(exchange=exchange_name, routing_key="", message=message)
+        publish_message(exchange=PIPELINE_EXCHANGE, routing_key=event_name, message=json.dumps(event))

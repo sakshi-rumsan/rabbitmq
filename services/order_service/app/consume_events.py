@@ -1,24 +1,15 @@
 """
-Consumer for order_service: listens to payment, inventory, and shipping events from RabbitMQ and updates order status in JSON DB.
+Consumer for order_service: listens to all pipeline events from RabbitMQ and updates order status in JSON DB.
 """
 import json
 from common.messaging.connection import get_connection
 from common.messaging.queues import declare_queue
 from common.messaging.exchanges import declare_exchange
+from common.messaging.constants import PIPELINE_EXCHANGE, EXCHANGE_TYPE, Q_ORDER_UPDATE
 from services.order_service.app.services.order_service import OrderService
 
-EXCHANGE_NAME = "order.events"
-QUEUE_NAME = "order.update.queue"
-
-status_map = {
-    "payment.success": "PAID",
-    "payment.failed": "PAYMENT_FAILED",
-    "inventory.reserved": "RESERVED",
-    "inventory.failed": "INVENTORY_FAILED",
-    "order.shipped": "SHIPPED"
-}
-
 order_event_state = {}
+
 def callback(ch, method, properties, body):
     event = json.loads(body)
     print("[Order] Received event:", event)
@@ -26,7 +17,6 @@ def callback(ch, method, properties, body):
     if not order_id:
         return
     event_type = event["event"]
-    # Track state for each order
     if order_id not in order_event_state:
         order_event_state[order_id] = {"payment": None, "inventory": None, "shipped": False}
     if event_type == "inventory.failed":
@@ -40,7 +30,6 @@ def callback(ch, method, properties, body):
     elif event_type == "order.shipped":
         order_event_state[order_id]["shipped"] = True
 
-    # Determine new status
     new_status = None
     state = order_event_state[order_id]
     if state["inventory"] == "FAILED":
@@ -71,10 +60,10 @@ def callback(ch, method, properties, body):
 def main():
     connection = get_connection()
     channel = connection.channel()
-    declare_exchange(EXCHANGE_NAME, exchange_type="fanout")
-    declare_queue(QUEUE_NAME)
-    channel.queue_bind(exchange=EXCHANGE_NAME, queue=QUEUE_NAME)
-    channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback, auto_ack=True)
+    declare_exchange(PIPELINE_EXCHANGE, exchange_type=EXCHANGE_TYPE)
+    declare_queue(Q_ORDER_UPDATE)
+    channel.queue_bind(exchange=PIPELINE_EXCHANGE, queue=Q_ORDER_UPDATE, routing_key="#")
+    channel.basic_consume(queue=Q_ORDER_UPDATE, on_message_callback=callback, auto_ack=True)
     print(f"[Order] Waiting for events to update order status...")
     channel.start_consuming()
 
