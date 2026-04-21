@@ -10,7 +10,6 @@ import pika
 
 class ShippingService:
     EVENTS_DB_PATH = "data/shipping_events.json"
-    EXCHANGE_NAME = "order.events"
 
     @staticmethod
     def create_shipment(shipping_data: dict) -> dict:

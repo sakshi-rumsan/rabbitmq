@@ -25,6 +25,11 @@ def main():
     declare_exchange(EXCHANGE_NAME, exchange_type="fanout", channel=channel)
     declare_queue(QUEUE_NAME, channel=channel)
     channel.queue_bind(exchange=EXCHANGE_NAME, queue=QUEUE_NAME)
+    # auto_ack=True is intentional for the DLQ consumer.
+    # This is a best-effort audit log — we read failed messages and write them to a JSON file.
+    # Using auto_ack=False here would risk a nack loop: if the callback fails, the message
+    # would be re-queued (or sent to a secondary DLQ), making the dead letter infrastructure
+    # recursive. Losing a DLQ record is an acceptable trade-off for avoiding that failure mode.
     channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback, auto_ack=True)
     print(f"[DLQ] Waiting for dead letter events...")
     channel.start_consuming()

@@ -104,6 +104,7 @@ def main():
     )
     connection = get_connection()
     channel = connection.channel()
+    channel.basic_qos(prefetch_count=1)
     declare_exchange(PIPELINE_EXCHANGE, exchange_type=EXCHANGE_TYPE)
     channel.queue_bind(exchange=PIPELINE_EXCHANGE, queue=Q_ORDER_UPDATE, routing_key="#")
     channel.basic_consume(queue=Q_ORDER_UPDATE, on_message_callback=callback, auto_ack=False)

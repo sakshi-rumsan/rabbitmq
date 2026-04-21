@@ -78,6 +78,7 @@ def callback(ch, method, properties, body):
 def main():
     connection = get_connection()
     channel = connection.channel()
+    channel.basic_qos(prefetch_count=1) 
     declare_exchange(PIPELINE_EXCHANGE, exchange_type=EXCHANGE_TYPE)
     declare_queue(Q_SHIPPING)
     for routing_key in [RK_PAYMENT_SUCCESS, RK_PAYMENT_FAILED, RK_INVENTORY_RESERVED, RK_INVENTORY_FAILED]:

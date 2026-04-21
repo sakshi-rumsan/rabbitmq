@@ -10,7 +10,6 @@ import pika
 
 class PaymentService:
     EVENTS_DB_PATH = "data/payment_events.json"
-    EXCHANGE_NAME = "order.events"
 
     @staticmethod
     def process_payment(payment_data: Dict) -> Dict:
