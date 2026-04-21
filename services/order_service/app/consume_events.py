@@ -6,6 +6,7 @@ from common.messaging.connection import get_connection
 from common.messaging.queues import declare_queue
 from common.messaging.exchanges import declare_exchange
 from common.messaging.constants import PIPELINE_EXCHANGE, EXCHANGE_TYPE, Q_ORDER_UPDATE
+from common.messaging.setup_retry_infrastructure import setup_retry_infrastructure
 from services.order_service.app.services.order_service import OrderService
 from common.utils.json_store import append_to_json_file
 
@@ -60,10 +61,14 @@ def callback(ch, method, properties, body):
                 file.truncate()
 
 def main():
+    setup_retry_infrastructure(
+        work_queue=Q_ORDER_UPDATE,
+        exchange=PIPELINE_EXCHANGE,
+        routing_key="#",
+    )
     connection = get_connection()
     channel = connection.channel()
     declare_exchange(PIPELINE_EXCHANGE, exchange_type=EXCHANGE_TYPE)
-    declare_queue(Q_ORDER_UPDATE)
     channel.queue_bind(exchange=PIPELINE_EXCHANGE, queue=Q_ORDER_UPDATE, routing_key="#")
     channel.basic_consume(queue=Q_ORDER_UPDATE, on_message_callback=callback, auto_ack=True)
     print(f"[Order] Waiting for events to update order status...")
