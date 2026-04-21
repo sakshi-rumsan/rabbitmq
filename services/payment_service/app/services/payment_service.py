@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict
 from services.payment_service.app.schemas.payment_schema import PaymentInput, PaymentSuccess, PaymentFailed
 from common.messaging.connection import get_connection
@@ -38,7 +38,7 @@ class PaymentService:
         event = {
             "event": event_name,
             "data": event_data,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
         append_to_json_file(PaymentService.EVENTS_DB_PATH, event)

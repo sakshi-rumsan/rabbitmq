@@ -1,7 +1,7 @@
 
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from services.shipping_service.app.schemas.shipping_schema import ShippingInput, ShippingOutput
 from common.messaging.connection import get_connection
 from common.utils.json_store import append_to_json_file
@@ -28,7 +28,7 @@ class ShippingService:
         event = {
             "event": event_name,
             "data": event_data,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
         append_to_json_file(ShippingService.EVENTS_DB_PATH, event)

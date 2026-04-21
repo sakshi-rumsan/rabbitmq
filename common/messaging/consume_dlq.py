@@ -22,8 +22,8 @@ def callback(ch, method, properties, body):
 def main():
     connection = get_connection()
     channel = connection.channel()
-    declare_exchange(EXCHANGE_NAME, exchange_type="fanout")
-    declare_queue(QUEUE_NAME)
+    declare_exchange(EXCHANGE_NAME, exchange_type="fanout", channel=channel)
+    declare_queue(QUEUE_NAME, channel=channel)
     channel.queue_bind(exchange=EXCHANGE_NAME, queue=QUEUE_NAME)
     channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback, auto_ack=True)
     print(f"[DLQ] Waiting for dead letter events...")

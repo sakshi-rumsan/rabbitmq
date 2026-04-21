@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from services.notification_service.app.schemas.notification_schema import NotificationInput, NotificationSent
 from common.utils.json_store import append_to_json_file
 
@@ -29,6 +29,6 @@ class NotificationService:
         event = {
             "event": "notification.sent",
             "data": event_data,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         append_to_json_file(NotificationService.NOTIFY_DB_PATH, event)

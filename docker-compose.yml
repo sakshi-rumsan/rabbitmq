@@ -28,7 +28,7 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-    command: ["python", "services/payment_service/app/consume_order_created.py"]
+    command: ["python", "services/payment_service/app/consume_inventory_reserved.py"]
 
   inventory_service:
     build: .

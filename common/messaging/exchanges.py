@@ -1,12 +1,16 @@
 from .connection import get_connection
 
 
-def declare_exchange(exchange_name: str, exchange_type: str = "direct", durable: bool = True) -> None:
+def declare_exchange(
+    exchange_name: str,
+    exchange_type: str = "direct",
+    durable: bool = True,
+    channel=None,
+) -> None:
+    if channel is not None:
+        channel.exchange_declare(exchange=exchange_name, exchange_type=exchange_type, durable=durable)
+        return
     connection = get_connection()
-    channel = connection.channel()
-    channel.exchange_declare(
-        exchange=exchange_name,
-        exchange_type=exchange_type,
-        durable=durable,
-    )
+    ch = connection.channel()
+    ch.exchange_declare(exchange=exchange_name, exchange_type=exchange_type, durable=durable)
     connection.close()

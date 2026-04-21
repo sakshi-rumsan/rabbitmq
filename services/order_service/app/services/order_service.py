@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict
 from common.utils.json_store import append_to_json_file
 
@@ -10,7 +10,7 @@ class OrderService:
     @staticmethod
     def create_order(user_id: str, items: List[Dict], total_amount: float) -> Dict:
         order_id = str(uuid.uuid4())
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(timezone.utc).isoformat()
         order = {
             "order_id": order_id,
             "user_id": user_id,
@@ -36,6 +36,6 @@ class OrderService:
         event = {
             "event": event_name,
             "data": event_data,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         publish_message(exchange=PIPELINE_EXCHANGE, routing_key=event_name, message=json.dumps(event))

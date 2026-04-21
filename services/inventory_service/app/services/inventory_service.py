@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List
 
 from common.messaging.connection import get_connection
@@ -57,7 +57,7 @@ class InventoryService:
         event = {
             "event": event_name,
             "data": event_data,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         try:
             from common.messaging.constants import PIPELINE_EXCHANGE, EXCHANGE_TYPE
