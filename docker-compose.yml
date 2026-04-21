@@ -8,8 +8,13 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   payment_service:
     build: .
@@ -17,9 +22,12 @@ services:
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_PASS=${RABBITMQ_PASS:-guest}
       - PYTHONPATH=/app
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     command: ["python", "services/payment_service/app/consume_order_created.py"]
 
   inventory_service:
@@ -28,9 +36,12 @@ services:
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_PASS=${RABBITMQ_PASS:-guest}
       - PYTHONPATH=/app
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     command: ["python", "services/inventory_service/app/consume_order_created.py"]
 
   notification_service:
@@ -39,10 +50,13 @@ services:
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_PASS=${RABBITMQ_PASS:-guest}
       - PYTHONPATH=/app
     depends_on:
-      - rabbitmq
-    command: ["python", "services/notification_service/app/consume_order_created.py"]
+      rabbitmq:
+        condition: service_healthy
+    command: ["python", "services/notification_service/app/consume_events.py"]
 
   shipping_service:
     build: .
@@ -50,9 +64,24 @@ services:
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_PASS=${RABBITMQ_PASS:-guest}
       - PYTHONPATH=/app
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     command: ["python", "services/shipping_service/app/consume_events.py"]
 
-# To add order_service or API gateway, add similar service blocks.
+  order_service:
+    build: .
+    container_name: order_service
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_PASS=${RABBITMQ_PASS:-guest}
+      - PYTHONPATH=/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    command: ["python", "services/order_service/app/consume_events.py"]
