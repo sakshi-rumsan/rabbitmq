@@ -2,6 +2,8 @@ import json
 from datetime import datetime
 from typing import Dict, List
 
+from common.messaging.connection import get_connection
+
 class InventoryService:
     EVENTS_DB_PATH = "data/inventory_events.json"
     STOCK_DB_PATH = "data/stock.json"
@@ -51,17 +53,15 @@ class InventoryService:
 
     @staticmethod
     def publish_event(event_name: str, event_data: dict):
-        import pika
         event = {
             "event": event_name,
             "data": event_data,
             "timestamp": datetime.utcnow().isoformat()
         }
-        # Publish to RabbitMQ exchange
         try:
-            connection = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
+            connection = get_connection()
             channel = connection.channel()
-            channel.exchange_declare(exchange="order.events", exchange_type="fanout")
+            channel.exchange_declare(exchange="order.events", exchange_type="fanout", durable=True)
             channel.basic_publish(
                 exchange="order.events",
                 routing_key="",
@@ -69,7 +69,7 @@ class InventoryService:
             )
             connection.close()
         except Exception as e:
-            print(f"[InventoryService] Failed to publish event to RabbitMQ: {e}")
+            print(f"[InventoryService] Failed to publish event: {e}")
         # Also write to JSON file for debugging
         try:
             with open(InventoryService.EVENTS_DB_PATH, "r+") as file:
